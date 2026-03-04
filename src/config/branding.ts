@@ -7,7 +7,7 @@
 
 export const BRANDING = {
   // Main agent name and emoji
-  agentName: process.env.NEXT_PUBLIC_AGENT_NAME || "Mission Control",
+  agentName: process.env.NEXT_PUBLIC_AGENT_NAME || "NightshiftOS",
   agentEmoji: process.env.NEXT_PUBLIC_AGENT_EMOJI || "🦞",
 
   // About page — agent identity
@@ -25,10 +25,10 @@ export const BRANDING = {
   twitterHandle: process.env.NEXT_PUBLIC_TWITTER_HANDLE || "@username",
 
   // Company/organization name (shown in office 3D view)
-  companyName: process.env.NEXT_PUBLIC_COMPANY_NAME || "MISSION CONTROL, INC.",
+  companyName: process.env.NEXT_PUBLIC_COMPANY_NAME || "NIGHTSHIFTOS, INC.",
 
   // App title (shown in browser tab)
-  appTitle: process.env.NEXT_PUBLIC_APP_TITLE || "Mission Control",
+  appTitle: process.env.NEXT_PUBLIC_APP_TITLE || "NightshiftOS",
 } as const;
 
 // Helper to get full agent display name
