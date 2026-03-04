@@ -77,7 +77,7 @@ export default function DashboardPage() {
           🌙 NightshiftOS
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-          Overview of Tenacitas agent activity
+          Overview of NightshiftOS agent activity
         </p>
       </div>
 

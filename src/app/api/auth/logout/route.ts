@@ -6,7 +6,7 @@ export async function POST() {
   // Clear auth cookie
   response.cookies.set("mc_auth", "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: false,
     sameSite: "strict",
     maxAge: 0,
     path: "/",

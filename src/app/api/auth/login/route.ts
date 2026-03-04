@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set("mc_auth", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       sameSite: "strict",
       maxAge: SESSION_TTL_SECONDS,
       path: "/",
