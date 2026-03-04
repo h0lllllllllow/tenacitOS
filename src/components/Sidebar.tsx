@@ -21,7 +21,6 @@ import {
   X,
   Users,
   Gamepad2,
-  GitBranch,
   Workflow,
   Zap,
   Server,
@@ -72,13 +71,6 @@ export function Sidebar() {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
-
-  // Close sidebar when navigating on mobile
-  useEffect(() => {
-    if (isMobile) {
-      setIsOpen(false);
-    }
-  }, [pathname, isMobile]);
 
   // Prevent scroll when sidebar is open on mobile
   useEffect(() => {
