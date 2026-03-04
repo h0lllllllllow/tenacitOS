@@ -1,16 +1,17 @@
 /**
  * Quick Actions API
  * POST /api/actions  body: { action }
- * Available actions: git-status, restart-gateway, clear-temp, usage-stats, heartbeat
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { logActivity } from '@/lib/activities-db';
 
-const execAsync = promisify(exec);
-
-const WORKSPACE = process.env.OPENCLAW_DIR ? `${process.env.OPENCLAW_DIR}/workspace` : '/root/.openclaw/workspace';
+const execFileAsync = promisify(execFile);
+const OPENCLAW_DIR = process.env.OPENCLAW_DIR || '/root/.openclaw';
+const WORKSPACE = path.join(OPENCLAW_DIR, 'workspace');
 
 interface ActionResult {
   action: string;
@@ -18,6 +19,58 @@ interface ActionResult {
   output: string;
   duration_ms: number;
   timestamp: string;
+}
+
+async function run(command: string, args: string[], cwd?: string): Promise<string> {
+  const { stdout, stderr } = await execFileAsync(command, args, {
+    cwd,
+    timeout: 10000,
+    maxBuffer: 1024 * 1024,
+  });
+  return `${stdout || ''}${stderr ? `\n${stderr}` : ''}`.trim();
+}
+
+async function listRepos(): Promise<string[]> {
+  const repos: string[] = [];
+  const entries = await fs.readdir(WORKSPACE, { withFileTypes: true }).catch(() => []);
+
+  if (await fs.stat(path.join(WORKSPACE, '.git')).then((s) => s.isDirectory()).catch(() => false)) {
+    repos.push(WORKSPACE);
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const repoPath = path.join(WORKSPACE, entry.name);
+    const gitPath = path.join(repoPath, '.git');
+    const isRepo = await fs.stat(gitPath).then((s) => s.isDirectory()).catch(() => false);
+    if (isRepo) repos.push(repoPath);
+  }
+
+  return repos.slice(0, 10);
+}
+
+async function cleanTempFiles(): Promise<string> {
+  const tmpDir = '/tmp';
+  const now = Date.now();
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  let removed = 0;
+
+  const entries = await fs.readdir(tmpDir, { withFileTypes: true }).catch(() => []);
+  for (const entry of entries) {
+    if (!entry.isFile()) continue;
+    const fullPath = path.join(tmpDir, entry.name);
+    try {
+      const stat = await fs.stat(fullPath);
+      if (now - stat.mtimeMs > oneDayMs) {
+        await fs.unlink(fullPath);
+        removed += 1;
+      }
+    } catch {
+      // skip
+    }
+  }
+
+  return `Removed ${removed} old file(s) from /tmp`;
 }
 
 async function runAction(action: string): Promise<ActionResult> {
@@ -29,73 +82,64 @@ async function runAction(action: string): Promise<ActionResult> {
 
     switch (action) {
       case 'git-status': {
-        // Find all git repos in workspace and get their status
-        const { stdout: dirs } = await execAsync(`find "${WORKSPACE}" -maxdepth 2 -name ".git" -type d 2>/dev/null | head -10`);
-        const repoPaths = dirs.trim().split('\n').filter(Boolean).map((d) => d.replace('/.git', ''));
-
+        const repoPaths = await listRepos();
         const results: string[] = [];
+
         for (const repoPath of repoPaths) {
-          const name = repoPath.split('/').pop() || repoPath;
+          const name = path.basename(repoPath);
           try {
-            const { stdout: status } = await execAsync(`cd "${repoPath}" && git status --short && git log --oneline -3 2>&1`);
-            results.push(`📁 ${name}:\n${status || '(clean)'}`);
+            const status = await run('git', ['status', '--short'], repoPath);
+            const log = await run('git', ['log', '--oneline', '-3'], repoPath);
+            results.push(`📁 ${name}:\n${status || '(clean)'}\n${log}`);
           } catch {
             results.push(`📁 ${name}: (error reading git status)`);
           }
         }
+
         output = results.length ? results.join('\n\n') : 'No git repos found in workspace';
         break;
       }
 
       case 'restart-gateway': {
-        const { stdout, stderr } = await execAsync('systemctl restart openclaw-gateway 2>&1 || echo "Service not found"');
-        output = stdout || stderr || 'Restart command executed';
-        // Also check status
         try {
-          const { stdout: status } = await execAsync('systemctl is-active openclaw-gateway 2>&1 || echo "unknown"');
-          output += `\nStatus: ${status.trim()}`;
-        } catch {}
+          await run('systemctl', ['restart', 'openclaw-gateway']);
+          const status = await run('systemctl', ['is-active', 'openclaw-gateway']);
+          output = `Restart command executed\nStatus: ${status.trim()}`;
+        } catch {
+          output = 'Service not found or restart failed';
+        }
         break;
       }
 
       case 'clear-temp': {
-        const commands = [
-          'find /tmp -maxdepth 1 -type f -mtime +1 -delete 2>/dev/null; echo "Cleaned /tmp"',
-          `find "${WORKSPACE}" -name "*.tmp" -o -name "*.bak" | head -20 | xargs rm -f 2>/dev/null; echo "Cleaned tmp/bak files"`,
-          'find /root/.pm2/logs -name "*.log" -size +50M -exec truncate -s 10M {} \\; 2>/dev/null; echo "Trimmed large PM2 logs"',
-        ];
-        const results = await Promise.all(commands.map((cmd) => execAsync(cmd).then((r) => r.stdout).catch((e) => e.message)));
-        output = results.join('\n');
+        output = await cleanTempFiles();
         break;
       }
 
       case 'usage-stats': {
-        const { stdout: du } = await execAsync(`du -sh "${WORKSPACE}" 2>/dev/null || echo "N/A"`);
-        const { stdout: df } = await execAsync('df -h / | tail -1');
-        const { stdout: mem } = await execAsync('free -h | head -2');
-        const { stdout: cpu } = await execAsync("top -bn1 | grep 'Cpu(s)' | head -1");
-        const { stdout: uptime } = await execAsync('uptime -p');
-        output = `Workspace: ${du.trim()}\n\nDisk: ${df.trim()}\n\nMemory:\n${mem.trim()}\n\nCPU: ${cpu.trim()}\n\nUptime: ${uptime.trim()}`;
+        const du = await run('du', ['-sh', WORKSPACE]).catch(() => 'N/A');
+        const df = await run('df', ['-h', '/']).catch(() => 'N/A');
+        const mem = await run('free', ['-h']).catch(() => 'N/A');
+        const uptime = await run('uptime', ['-p']).catch(() => 'N/A');
+        output = `Workspace: ${du}\n\nDisk:\n${df}\n\nMemory:\n${mem}\n\nUptime: ${uptime}`;
         break;
       }
 
       case 'heartbeat': {
-        // Check all critical services
-        const services = ['mission-control'];
-        const pm2services = ['classvault', 'content-vault', 'brain'];
         const results: string[] = [];
+        const services = ['mission-control'];
 
         for (const svc of services) {
-          const { stdout } = await execAsync(`systemctl is-active ${svc} 2>/dev/null || echo "inactive"`);
-          const status = stdout.trim();
-          results.push(`${status === 'active' ? '✅' : '❌'} ${svc}: ${status}`);
+          const status = await run('systemctl', ['is-active', svc]).catch(() => 'inactive');
+          const s = status.trim();
+          results.push(`${s === 'active' ? '✅' : '❌'} ${svc}: ${s}`);
         }
 
         try {
-          const { stdout: pm2 } = await execAsync('pm2 jlist 2>/dev/null');
+          const pm2 = await run('pm2', ['jlist']);
           const pm2list = JSON.parse(pm2);
-          for (const svc of pm2services) {
-            const proc = pm2list.find((p: { name: string }) => p.name === svc);
+          for (const svc of ['classvault', 'content-vault', 'brain']) {
+            const proc = pm2list.find((p: { name: string; pm2_env?: { status?: string } }) => p.name === svc);
             const status = proc?.pm2_env?.status || 'not found';
             results.push(`${status === 'online' ? '✅' : '❌'} ${svc} (pm2): ${status}`);
           }
@@ -103,10 +147,9 @@ async function runAction(action: string): Promise<ActionResult> {
           results.push('⚠️ PM2: could not connect');
         }
 
-        // Ping the main site
         try {
-          const { stdout: ping } = await execAsync('curl -s -o /dev/null -w "%{http_code}" --max-time 5 https://tenacitas.cazaustre.dev');
-          results.push(`\n🌐 tenacitas.cazaustre.dev: HTTP ${ping.trim()}`);
+          const response = await fetch('https://tenacitas.cazaustre.dev', { method: 'HEAD' });
+          results.push(`\n🌐 tenacitas.cazaustre.dev: HTTP ${response.status}`);
         } catch {
           results.push('\n🌐 tenacitas.cazaustre.dev: unreachable');
         }
@@ -116,8 +159,15 @@ async function runAction(action: string): Promise<ActionResult> {
       }
 
       case 'npm-audit': {
-        const { stdout, stderr } = await execAsync(`cd "${WORKSPACE}/mission-control" && npm audit --json 2>/dev/null | node -e "const d=require('fs').readFileSync('/dev/stdin','utf-8');const j=JSON.parse(d);console.log('Vulnerabilities: '+JSON.stringify(j.metadata?.vulnerabilities||{}))" 2>&1`).catch((e) => ({ stdout: '', stderr: e.message }));
-        output = stdout || stderr || 'Audit completed';
+        const missionControlPath = path.join(WORKSPACE, 'mission-control');
+        const auditOutput = await run('npm', ['audit', '--json'], missionControlPath).catch((e) => String(e));
+
+        try {
+          const parsed = JSON.parse(auditOutput);
+          output = `Vulnerabilities: ${JSON.stringify(parsed.metadata?.vulnerabilities || {})}`;
+        } catch {
+          output = auditOutput;
+        }
         break;
       }
 
@@ -140,7 +190,7 @@ async function runAction(action: string): Promise<ActionResult> {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action } = body;
+    const action = typeof body?.action === 'string' ? body.action : '';
 
     if (!action) {
       return NextResponse.json({ error: 'Missing action' }, { status: 400 });

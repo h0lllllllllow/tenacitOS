@@ -7,13 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { logActivity } from '@/lib/activities-db';
-
-const OPENCLAW_DIR = process.env.OPENCLAW_DIR || '/root/.openclaw';
-
-const WORKSPACE_MAP: Record<string, string> = {
-  workspace: path.join(OPENCLAW_DIR, 'workspace'),
-  'mission-control': path.join(OPENCLAW_DIR, 'workspace', 'mission-control'),
-};
+import { resolveWorkspacePath } from '@/lib/workspace-paths';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,15 +18,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing path or content' }, { status: 400 });
     }
 
-    const base = WORKSPACE_MAP[workspace || 'workspace'];
-    if (!base) {
-      return NextResponse.json({ error: 'Unknown workspace' }, { status: 400 });
+    const resolved = resolveWorkspacePath(workspace, filePath);
+    if (!resolved) {
+      return NextResponse.json({ error: 'Invalid workspace or path' }, { status: 400 });
     }
 
-    const fullPath = path.resolve(base, filePath);
-    if (!fullPath.startsWith(base)) {
-      return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
-    }
+    const { fullPath } = resolved;
 
     // Create parent directories if needed
     await fs.mkdir(path.dirname(fullPath), { recursive: true });

@@ -4,9 +4,9 @@
  * GET /api/sessions?id=xxx   → get messages from a specific session (reads JSONL)
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, resolve } from 'path';
 
 const OPENCLAW_DIR = process.env.OPENCLAW_DIR || '/root/.openclaw';
 
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
 
 async function listSessions(): Promise<NextResponse> {
   try {
-    const output = execSync('openclaw sessions list --json 2>/dev/null', {
+    const output = execFileSync('openclaw', ['sessions', 'list', '--json'], {
       timeout: 10000,
       encoding: 'utf-8',
     });
@@ -194,8 +194,12 @@ async function getSessionMessages(sessionId: string): Promise<NextResponse> {
     return NextResponse.json({ error: 'Invalid session ID' }, { status: 400 });
   }
 
-  const sessionsDir = join(OPENCLAW_DIR, 'agents', 'main', 'sessions');
-  const filePath = join(sessionsDir, `${sessionId}.jsonl`);
+  const sessionsDir = resolve(join(OPENCLAW_DIR, 'agents', 'main', 'sessions'));
+  const filePath = resolve(join(sessionsDir, `${sessionId}.jsonl`));
+
+  if (!filePath.startsWith(sessionsDir + '/') && filePath !== sessionsDir) {
+    return NextResponse.json({ error: 'Invalid session path' }, { status: 400 });
+  }
 
   if (!existsSync(filePath)) {
     return NextResponse.json({ error: 'Session not found', messages: [] }, { status: 404 });

@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
-
-const OPENCLAW_DIR = process.env.OPENCLAW_DIR || '/root/.openclaw';
-
-const WORKSPACE_MAP: Record<string, string> = {
-  workspace: path.join(OPENCLAW_DIR, 'workspace'),
-  'mission-control': path.join(OPENCLAW_DIR, 'workspace', 'mission-control'),
-};
+import { getWorkspaceBase, resolveWorkspacePath } from '@/lib/workspace-paths';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,22 +12,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing path or name' }, { status: 400 });
     }
 
-    const base = WORKSPACE_MAP[workspace || 'workspace'];
+    const base = getWorkspaceBase(workspace);
     if (!base) {
       return NextResponse.json({ error: 'Unknown workspace' }, { status: 400 });
     }
 
-    const targetPath = name
-      ? path.resolve(base, dirPath || '', name)
-      : path.resolve(base, dirPath);
-
-    if (!targetPath.startsWith(base)) {
+    const relativeTarget = name ? path.join(dirPath || '', name) : dirPath;
+    const resolved = resolveWorkspacePath(workspace, relativeTarget);
+    if (!resolved) {
       return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
     }
 
-    await fs.mkdir(targetPath, { recursive: true });
+    await fs.mkdir(resolved.fullPath, { recursive: true });
 
-    return NextResponse.json({ success: true, path: path.relative(base, targetPath) });
+    return NextResponse.json({ success: true, path: path.relative(base, resolved.fullPath) });
   } catch (error) {
     console.error('[mkdir] Error:', error);
     return NextResponse.json({ error: 'Failed to create directory' }, { status: 500 });

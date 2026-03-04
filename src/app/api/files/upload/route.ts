@@ -2,21 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { logActivity } from '@/lib/activities-db';
-
-const OPENCLAW_DIR = process.env.OPENCLAW_DIR || '/root/.openclaw';
-
-const WORKSPACE_MAP: Record<string, string> = {
-  workspace: path.join(OPENCLAW_DIR, 'workspace'),
-  'mission-control': path.join(OPENCLAW_DIR, 'workspace', 'mission-control'),
-};
-
-function resolvePath(workspace: string, filePath: string): string | null {
-  const base = WORKSPACE_MAP[workspace];
-  if (!base) return null;
-  const full = path.resolve(base, filePath);
-  if (!full.startsWith(base)) return null; // path traversal check
-  return full;
-}
+import { getWorkspaceBase, resolveWorkspacePath } from '@/lib/workspace-paths';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,22 +15,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No files provided' }, { status: 400 });
     }
 
-    const base = WORKSPACE_MAP[workspace];
+    const base = getWorkspaceBase(workspace);
     if (!base) {
       return NextResponse.json({ error: 'Unknown workspace' }, { status: 400 });
+    }
+
+    const resolvedDir = resolveWorkspacePath(workspace, dirPath || '.');
+    if (!resolvedDir) {
+      return NextResponse.json({ error: 'Invalid upload path' }, { status: 400 });
     }
 
     const results: Array<{ name: string; size: number; path: string }> = [];
 
     for (const file of files) {
       const sanitizedName = path.basename(file.name);
-      const targetDir = path.resolve(base, dirPath);
-      if (!targetDir.startsWith(base)) {
-        continue; // skip unsafe
-      }
+      const targetPath = path.join(resolvedDir.fullPath, sanitizedName);
 
-      await fs.mkdir(targetDir, { recursive: true });
-      const targetPath = path.join(targetDir, sanitizedName);
+      await fs.mkdir(resolvedDir.fullPath, { recursive: true });
 
       const buffer = Buffer.from(await file.arrayBuffer());
       await fs.writeFile(targetPath, buffer);
@@ -52,7 +39,7 @@ export async function POST(request: NextRequest) {
       results.push({
         name: sanitizedName,
         size: buffer.length,
-        path: dirPath ? `${dirPath}/${sanitizedName}` : sanitizedName,
+        path: path.relative(base, targetPath),
       });
     }
 
