@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 
 // GET: Fetch run history for a cron job
 export async function GET(request: NextRequest) {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     let runs: RunEntry[] = [];
 
     try {
-      const output = execSync(`openclaw cron runs ${id} --json 2>/dev/null`, {
+      const output = execFileSync("openclaw", ["cron", "runs", id, "--json"], {
         timeout: 10000,
         encoding: "utf-8",
       });
