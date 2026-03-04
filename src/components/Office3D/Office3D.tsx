@@ -63,20 +63,20 @@ export default function Office3D() {
     setAvatarPositions((prev) => new Map(prev).set(id, position));
   };
 
-  // Definir obstáculos (muebles)
+  // Define obstacles (furniture)
   const obstacles = [
-    // Escritorios (6)
+    // Desks (6)
     ...AGENTS.map(agent => ({
       position: new Vector3(agent.position[0], 0, agent.position[2]),
       radius: 1.5
     })),
-    // Archivador
+    // File cabinet
     { position: new Vector3(-8, 0, -5), radius: 0.8 },
-    // Pizarra
+    // Whiteboard
     { position: new Vector3(0, 0, -8), radius: 1.5 },
-    // Máquina de café
+    // Coffee machine
     { position: new Vector3(8, 0, -5), radius: 0.6 },
-    // Plantas
+    // Plants
     { position: new Vector3(-7, 0, 6), radius: 0.5 },
     { position: new Vector3(7, 0, 6), radius: 0.5 },
     { position: new Vector3(-9, 0, 0), radius: 0.4 },
@@ -97,20 +97,20 @@ export default function Office3D() {
             <meshStandardMaterial color="orange" />
           </mesh>
         }>
-          {/* Iluminación */}
+          {/* Lighting */}
           <Lights />
 
-          {/* Cielo y ambiente */}
+          {/* Sky and environment */}
           <Sky sunPosition={[100, 20, 100]} />
           <Environment preset="sunset" />
 
-          {/* Suelo */}
+          {/* Floor */}
           <Floor />
 
-          {/* Paredes */}
+          {/* Walls */}
           <Walls />
 
-          {/* Escritorios de agentes (sin avatares) */}
+          {/* Agent desks (without avatars) */}
           {AGENTS.map((agent) => (
             <AgentDesk
               key={agent.id}
@@ -121,7 +121,7 @@ export default function Office3D() {
             />
           ))}
 
-          {/* Avatares móviles */}
+          {/* Moving avatars */}
           {AGENTS.map((agent) => (
             <MovingAvatar
               key={`avatar-${agent.id}`}
@@ -134,7 +134,7 @@ export default function Office3D() {
             />
           ))}
 
-          {/* Mobiliario interactivo */}
+          {/* Interactive furniture */}
           <FileCabinet
             position={[-8, 0, -5]}
             onClick={handleFileCabinetClick}
@@ -149,7 +149,7 @@ export default function Office3D() {
             onClick={handleCoffeeClick}
           />
 
-          {/* Decoración */}
+          {/* Decoration */}
           <PlantPot position={[-7, 0, 6]} size="large" />
           <PlantPot position={[7, 0, 6]} size="medium" />
           <PlantPot position={[-9, 0, 0]} size="small" />
@@ -159,7 +159,7 @@ export default function Office3D() {
             rotation={[0, 0, 0]}
           />
 
-          {/* Controles de cámara */}
+          {/* Camera controls */}
           {controlMode === 'orbit' ? (
             <OrbitControls
               enableDamping
@@ -174,7 +174,7 @@ export default function Office3D() {
         </Suspense>
       </Canvas>
 
-      {/* Panel lateral cuando se selecciona un agente */}
+      {/* Side panel when an agent is selected */}
       {selectedAgent && (
         <AgentPanel
           agent={AGENTS.find(a => a.id === selectedAgent)!}
@@ -183,7 +183,7 @@ export default function Office3D() {
         />
       )}
 
-      {/* Modal de interacciones con objetos */}
+      {/* Object interaction modal */}
       {interactionModal && (
         <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-50">
           <div className="bg-gray-900 border border-yellow-500 rounded-lg p-8 max-w-2xl w-full mx-4 shadow-2xl">

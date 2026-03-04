@@ -124,7 +124,7 @@ function RobotAvatar({ color, position }: { color: string; position: [number, nu
   );
 }
 
-// Humanoide simple (base para profesor, ejecutivo, etc.)
+// Simple humanoid (base for professor, executive, etc.)
 function HumanoidAvatar({ 
   color, 
   position, 

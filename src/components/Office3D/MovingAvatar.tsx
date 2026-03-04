@@ -35,19 +35,19 @@ export default function MovingAvatar({
 }: MovingAvatarProps) {
   const groupRef = useRef<Group>(null);
   
-  // Posición inicial completamente aleatoria SIN colisiones
+  // Completely random initial position WITHOUT collisions
   const [initialPos] = useState(() => {
     let pos: Vector3;
     let attempts = 0;
     const minDistanceToObstacle = 1.5;
 
-    // Intentar hasta 50 veces encontrar una posición sin colisión
+    // Try up to 50 times to find a collision-free position
     do {
       const x = Math.random() * (officeBounds.maxX - officeBounds.minX - 2) + officeBounds.minX + 1;
       const z = Math.random() * (officeBounds.maxZ - officeBounds.minZ - 2) + officeBounds.minZ + 1;
       pos = new Vector3(x, 0.6, z);
 
-      // Verificar colisión con obstáculos
+      // Check collision with obstacles
       let isFree = true;
       for (const obstacle of obstacles) {
         const distance = pos.distanceTo(obstacle.position);
@@ -67,17 +67,17 @@ export default function MovingAvatar({
   const [targetPos, setTargetPos] = useState(initialPos);
   const currentPos = useRef(initialPos.clone());
   
-  // Notificar posición inicial
+  // Notify initial position
   useEffect(() => {
     onPositionUpdate(agent.id, initialPos.clone());
   }, [agent.id, initialPos, onPositionUpdate]);
 
-  // Verificar si una posición está libre (sin colisiones)
+  // Check if a position is free (no collisions)
   const isPositionFree = useCallback((pos: Vector3): boolean => {
-    const minDistanceToObstacle = 1.5; // distancia mínima a muebles
-    const minDistanceToAvatar = 1.2; // distancia mínima entre avatares
+    const minDistanceToObstacle = 1.5; // minimum distance to furniture
+    const minDistanceToAvatar = 1.2; // minimum distance between avatars
 
-    // Verificar colisión con obstáculos
+    // Check collision with obstacles
     for (const obstacle of obstacles) {
       const distance = pos.distanceTo(obstacle.position);
       if (distance < obstacle.radius + minDistanceToObstacle) {
@@ -85,7 +85,7 @@ export default function MovingAvatar({
       }
     }
 
-    // Verificar colisión con otros avatares
+    // Check collision with other avatars
     for (const [otherId, otherPos] of otherAvatarPositions.entries()) {
       if (otherId === agent.id) continue;
       const distance = pos.distanceTo(otherPos);
@@ -103,7 +103,7 @@ export default function MovingAvatar({
       let attempts = 0;
       let newPos: Vector3;
 
-      // Intentar encontrar una posición libre (máximo 20 intentos)
+      // Try finding a free position (max 20 attempts)
       do {
         const x = Math.random() * (officeBounds.maxX - officeBounds.minX) + officeBounds.minX;
         const z = Math.random() * (officeBounds.maxZ - officeBounds.minZ) + officeBounds.minZ;
@@ -116,9 +116,9 @@ export default function MovingAvatar({
       }
     };
 
-    // Idle: moverse más frecuentemente
-    // Working: moverse menos
-    // Thinking: moverse muy poco
+    // Idle: move more frequently
+    // Working: move less
+    // Thinking: move very little
     // Error: quedarse quieto
     const getInterval = () => {
       switch (state.status) {
@@ -135,7 +135,7 @@ export default function MovingAvatar({
       }
     };
 
-    // Primer objetivo después de montar
+    // First target after mounting
     const timeout = setTimeout(getNewTarget, 1000);
     const interval = setInterval(getNewTarget, getInterval());
     
@@ -149,28 +149,28 @@ export default function MovingAvatar({
   useFrame((frameState, delta) => {
     if (!groupRef.current) return;
 
-    const speed = state.status === 'idle' ? 1.5 : 0.8; // idle se mueve más rápido
+    const speed = state.status === 'idle' ? 1.5 : 0.8; // idle moves faster
     const moveSpeed = delta * speed;
 
-    // Calcular nueva posición
+    // Calculate new position
     const newPos = currentPos.current.clone().lerp(targetPos, moveSpeed);
 
-    // Verificar si la nueva posición es válida
+    // Check if the new position is valid
     if (isPositionFree(newPos)) {
       currentPos.current.copy(newPos);
       groupRef.current.position.copy(currentPos.current);
 
-      // Notificar la nueva posición
+      // Notify the new position
       onPositionUpdate(agent.id, currentPos.current.clone());
 
-      // Rotar hacia la dirección del movimiento
+      // Rotate toward movement direction
       const direction = new Vector3().subVectors(targetPos, currentPos.current);
       if (direction.length() > 0.1) {
         const angle = Math.atan2(direction.x, direction.z);
         groupRef.current.rotation.y = angle;
       }
     } else {
-      // Si hay colisión, buscar nuevo objetivo
+      // If there is a collision, find a new target
       const x = Math.random() * (officeBounds.maxX - officeBounds.minX) + officeBounds.minX;
       const z = Math.random() * (officeBounds.maxZ - officeBounds.minZ) + officeBounds.minZ;
       const newTarget = new Vector3(x, 0.6, z);
