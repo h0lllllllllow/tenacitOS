@@ -12,6 +12,22 @@ function isAuthenticated(request: NextRequest): boolean {
   return !!(authCookie && authCookie.value === process.env.AUTH_SECRET);
 }
 
+function hasValidSameOrigin(request: NextRequest): boolean {
+  const origin = request.headers.get("origin");
+  const expected = request.nextUrl.origin;
+  const fetchSite = request.headers.get("sec-fetch-site");
+
+  if (fetchSite && !["same-origin", "same-site", "none"].includes(fetchSite)) {
+    return false;
+  }
+
+  if (!origin) {
+    return true;
+  }
+
+  return origin === expected;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -39,6 +55,16 @@ export function middleware(request: NextRequest) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  const isMutatingMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(request.method);
+  const isApiRoute = pathname.startsWith("/api/");
+
+  if (isApiRoute && isMutatingMethod && !hasValidSameOrigin(request)) {
+    return NextResponse.json(
+      { error: "Forbidden", message: "Cross-site request blocked" },
+      { status: 403 }
+    );
   }
 
   return NextResponse.next();

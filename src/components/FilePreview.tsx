@@ -10,6 +10,7 @@ import {
   Copy,
   Check,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 interface FilePreviewProps {
   workspace: string;
@@ -70,60 +71,6 @@ function isCodeFile(ext: string): boolean {
   ].includes(ext);
 }
 
-// Simple markdown renderer
-function renderMarkdown(text: string): string {
-  return (
-    text
-      // Headers
-      .replace(
-        /^### (.*$)/gm,
-        '<h3 style="font-size: 1.125rem; font-weight: bold; color: var(--text-primary); margin-top: 1rem; margin-bottom: 0.5rem;">$1</h3>'
-      )
-      .replace(
-        /^## (.*$)/gm,
-        '<h2 style="font-size: 1.25rem; font-weight: bold; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.75rem;">$1</h2>'
-      )
-      .replace(
-        /^# (.*$)/gm,
-        '<h1 style="font-size: 1.5rem; font-weight: bold; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 1rem;">$1</h1>'
-      )
-      // Bold and italic
-      .replace(/\*\*\*(.*?)\*\*\*/g, "<strong><em>$1</em></strong>")
-      .replace(
-        /\*\*(.*?)\*\*/g,
-        '<strong style="color: var(--text-primary);">$1</strong>'
-      )
-      .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      // Code blocks
-      .replace(
-        /```(\w+)?\n([\s\S]*?)```/g,
-        '<pre style="background-color: var(--background); padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; overflow-x: auto;"><code style="color: var(--accent);">$2</code></pre>'
-      )
-      // Inline code
-      .replace(
-        /`([^`]+)`/g,
-        '<code style="background-color: var(--background); padding: 0.125rem 0.375rem; border-radius: 0.25rem; color: var(--accent);">$1</code>'
-      )
-      // Links
-      .replace(
-        /\[([^\]]+)\]\(([^)]+)\)/g,
-        '<a href="$2" style="color: #60A5FA;" target="_blank">$1</a>'
-      )
-      // Unordered lists
-      .replace(
-        /^\s*[-*] (.*$)/gm,
-        '<li style="margin-left: 1rem; list-style-type: disc;">$1</li>'
-      )
-      // Blockquotes
-      .replace(
-        /^> (.*$)/gm,
-        '<blockquote style="border-left: 4px solid var(--border); padding-left: 1rem; font-style: italic; color: var(--text-secondary);">$1</blockquote>'
-      )
-      // Line breaks
-      .replace(/\n\n/g, '</p><p style="margin-bottom: 1rem;">')
-      .replace(/\n/g, "<br/>")
-  );
-}
 
 export function FilePreview({ workspace, path, name, onClose }: FilePreviewProps) {
   const [content, setContent] = useState<string | null>(null);
@@ -311,10 +258,9 @@ export function FilePreview({ workspace, path, name, onClose }: FilePreviewProps
             <div
               className="prose prose-invert max-w-none"
               style={{ color: "var(--text-secondary)" }}
-              dangerouslySetInnerHTML={{
-                __html: `<p style="margin-bottom: 1rem;">${renderMarkdown(content)}</p>`,
-              }}
-            />
+            >
+              <ReactMarkdown>{content}</ReactMarkdown>
+            </div>
           )}
 
           {!loading && !error && isCode && content && (
