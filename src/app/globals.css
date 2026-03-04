@@ -7,7 +7,8 @@
    Updated: 2026-02-17
    ============================================ */
 
-:root {
+:root,
+:root[data-theme="nightshift"] {
   /* Core Colors */
   --bg: #060814;
   --background: #060814; /* alias for compatibility */
@@ -80,6 +81,46 @@
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme="midnight"] {
+  --bg: #081226;
+  --background: #081226;
+  --foreground: #E7F1FF;
+  --surface: #0F1C39;
+  --surface-elevated: #16274D;
+  --surface-hover: #1C325F;
+  --card: #0F1C39;
+  --card-elevated: #16274D;
+  --border: #29457A;
+  --border-strong: #3A5C98;
+  --accent: #4B9BFF;
+  --accent-soft: rgba(75, 155, 255, 0.18);
+  --accent-hover: #66ACFF;
+  --accent-muted: rgba(75, 155, 255, 0.12);
+  --text-primary: #E7F1FF;
+  --text-secondary: #AFC5E8;
+  --text-muted: #7E97C2;
+}
+
+:root[data-theme="neon"] {
+  --bg: #05070F;
+  --background: #05070F;
+  --foreground: #F2F4FF;
+  --surface: #0B1020;
+  --surface-elevated: #121A31;
+  --surface-hover: #1A2748;
+  --card: #0B1020;
+  --card-elevated: #121A31;
+  --border: #2A2A5D;
+  --border-strong: #3E3E80;
+  --accent: #B388FF;
+  --accent-soft: rgba(179, 136, 255, 0.2);
+  --accent-hover: #C5A4FF;
+  --accent-muted: rgba(179, 136, 255, 0.12);
+  --text-primary: #F2F4FF;
+  --text-secondary: #B6BDE0;
+  --text-muted: #818BB5;
 }
 
 /* Base Styles */

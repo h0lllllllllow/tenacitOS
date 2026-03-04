@@ -40,7 +40,17 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        <script dangerouslySetInnerHTML={{__html:`if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js")`}} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+  const key = "nightshift-theme";
+  const value = localStorage.getItem(key);
+  const theme = ["nightshift", "midnight", "neon"].includes(value || "") ? value : "nightshift";
+  document.documentElement.dataset.theme = theme;
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
+})();`,
+          }}
+        />
       </head>
       <body 
         className={`${inter.variable} ${sora.variable} ${jetbrainsMono.variable} font-sans`}
