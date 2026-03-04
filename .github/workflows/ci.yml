@@ -18,9 +18,38 @@ jobs:
       - run: npm install
       - run: npm run build
 
-  lint:
-    name: lint
+  lint-changed:
+    name: lint-changed
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install
+      - id: changed
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            **/*.js
+            **/*.jsx
+            **/*.ts
+            **/*.tsx
+      - name: Lint changed files only
+        if: steps.changed.outputs.any_changed == 'true'
+        run: npx eslint ${{ steps.changed.outputs.all_changed_files }}
+      - name: No TS/JS changes
+        if: steps.changed.outputs.any_changed != 'true'
+        run: echo "No JS/TS files changed"
+
+  lint-report:
+    name: lint-report
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
