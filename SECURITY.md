@@ -79,6 +79,22 @@ We will respond within 48 hours and work with you to resolve the issue.
    - Use parameterized queries (SQLite prepared statements)
    - Escape user-generated content in UI
 
+## Hardening Progress (2026-03)
+
+Implemented in this fork:
+
+- Replaced multiple shell-interpolated command paths with argument-safe execution (`execFile`/`execFileSync`) in:
+  - `/api/terminal`
+  - `/api/cron`, `/api/cron/run`, `/api/cron/runs`
+  - `/api/git`
+  - `/api/actions`
+  - `/api/sessions`
+  - `/api/system/services`
+- Added stricter workspace path boundary guards via `src/lib/workspace-paths.ts` and reused across file APIs.
+- Reduced XSS exposure by removing custom `dangerouslySetInnerHTML` markdown rendering in preview components.
+- Added same-origin CSRF guard for mutating API routes in middleware.
+- Hardened log streaming endpoint backend validation and process cleanup behavior.
+
 ## Known Security Considerations
 
 ### Authentication
