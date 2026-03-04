@@ -4,6 +4,26 @@ import { join } from "path";
 
 export const dynamic = "force-dynamic";
 
+interface OpenClawAgent {
+  id: string;
+  name?: string;
+  workspace: string;
+  model?: { primary?: string };
+  subagents?: { allowAgents?: string[] };
+}
+
+interface OpenClawConfig {
+  agents: {
+    list: OpenClawAgent[];
+    defaults: { model: { primary?: string } };
+  };
+  channels?: {
+    telegram?: {
+      accounts?: Record<string, { botToken?: string; dmPolicy?: string }>;
+    };
+  };
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -13,10 +33,10 @@ export async function GET(
 
     // Read openclaw config
     const configPath = (process.env.OPENCLAW_DIR || "/root/.openclaw") + "/openclaw.json";
-    const config = JSON.parse(readFileSync(configPath, "utf-8"));
+    const config = JSON.parse(readFileSync(configPath, "utf-8")) as OpenClawConfig;
 
     // Find agent
-    const agent = config.agents.list.find((a: any) => a.id === id);
+    const agent = config.agents.list.find((a) => a.id === id);
     if (!agent) {
       return NextResponse.json({ error: "Agent not found" }, { status: 404 });
     }
@@ -47,7 +67,7 @@ export async function GET(
 
     // Get session info (from OpenClaw API if available)
     // For now, we return mock data
-    const sessions: Array<any> = [];
+    const sessions: Array<Record<string, unknown>> = [];
 
     // Get telegram account info
     const telegramAccount = config.channels?.telegram?.accounts?.[id];

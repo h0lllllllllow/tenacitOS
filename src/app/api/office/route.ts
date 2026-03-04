@@ -50,6 +50,21 @@ const AGENT_CONFIG = {
   },
 };
 
+interface OpenClawAgent {
+  id: string;
+  name?: string;
+  workspace: string;
+}
+
+interface OpenClawConfig {
+  agents: {
+    list: OpenClawAgent[];
+  };
+  gateway?: {
+    auth?: { token?: string };
+  };
+}
+
 interface AgentSession {
   agentId: string;
   sessionId: string;
@@ -63,7 +78,7 @@ async function getAgentStatusFromGateway(): Promise<
 > {
   try {
     const configPath = (process.env.OPENCLAW_DIR || "/root/.openclaw") + "/openclaw.json";
-    const config = JSON.parse(readFileSync(configPath, "utf-8"));
+    const config = JSON.parse(readFileSync(configPath, "utf-8")) as OpenClawConfig;
     const gatewayToken = config.gateway?.auth?.token;
 
     if (!gatewayToken) {
@@ -184,12 +199,12 @@ function getAgentStatusFromFiles(
 export async function GET() {
   try {
     const configPath = (process.env.OPENCLAW_DIR || "/root/.openclaw") + "/openclaw.json";
-    const config = JSON.parse(readFileSync(configPath, "utf-8"));
+    const config = JSON.parse(readFileSync(configPath, "utf-8")) as OpenClawConfig;
 
     // Try gateway first, fallback to file-based
     const gatewayStatus = await getAgentStatusFromGateway();
 
-    const agents = config.agents.list.map((agent: any) => {
+    const agents = config.agents.list.map((agent) => {
       const agentInfo = AGENT_CONFIG[agent.id as keyof typeof AGENT_CONFIG] || {
         emoji: "🤖",
         color: "#666",
