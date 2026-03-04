@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
   FileText,
@@ -69,12 +69,25 @@ interface ActivityFeedProps {
 export function ActivityFeed({ limit = 10 }: ActivityFeedProps) {
   const [activities, setActivities] = useState<Activity[] | null>(null);
 
-  useEffect(() => {
-    fetch(`/api/activities?limit=${limit}&sort=newest`)
+  const fetchActivities = useCallback(() => {
+    fetch(`/api/activities?limit=${limit}&sort=newest&ts=${Date.now()}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data: ActivitiesResponse) => setActivities(data.activities))
       .catch(() => setActivities([]));
   }, [limit]);
+
+  useEffect(() => {
+    fetchActivities();
+    const interval = setInterval(fetchActivities, 10000);
+    return () => clearInterval(interval);
+  }, [fetchActivities]);
+
+  useEffect(() => {
+    const es = new EventSource("/api/live/stream");
+    es.onmessage = () => fetchActivities();
+    es.onerror = () => es.close();
+    return () => es.close();
+  }, [fetchActivities]);
 
   if (!activities) {
     return (

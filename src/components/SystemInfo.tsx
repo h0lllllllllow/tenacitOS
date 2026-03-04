@@ -32,24 +32,29 @@ function formatBytes(bytes: number): string {
 }
 
 export function SystemInfo({ data }: SystemInfoProps) {
-  if (!data) {
+  if (!data || !data.agent || !data.system || !data.system.memory) {
     return (
-      <div 
-        className="rounded-xl p-6 animate-pulse"
-        style={{ backgroundColor: "var(--card)" }}
+      <div
+        className="rounded-xl p-6"
+        style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}
       >
-        <div 
-          className="h-6 rounded w-1/3 mb-4"
-          style={{ backgroundColor: "var(--border)" }}
-        ></div>
-        <div className="space-y-3">
-          <div className="h-4 rounded w-2/3" style={{ backgroundColor: "var(--border)" }}></div>
-          <div className="h-4 rounded w-1/2" style={{ backgroundColor: "var(--border)" }}></div>
-          <div className="h-4 rounded w-3/4" style={{ backgroundColor: "var(--border)" }}></div>
-        </div>
+        <h2
+          className="text-xl font-semibold mb-3 flex items-center gap-2"
+          style={{ color: "var(--text-primary)", fontFamily: "var(--font-heading)" }}
+        >
+          <Server className="w-5 h-5" style={{ color: "var(--accent)" }} />
+          System Information
+        </h2>
+        <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+          Waiting for system data...
+        </p>
       </div>
     );
   }
+
+  const model = data.system.model || "unknown";
+  const provider = model.includes("/") ? model.split("/")[0] : "provider";
+  const shortModel = model.includes("/") ? model.split("/").pop() || model : model;
 
   const infoItems = [
     {
@@ -73,8 +78,8 @@ export function SystemInfo({ data }: SystemInfoProps) {
     {
       icon: Brain,
       label: "Current Model",
-      value: data.system.model.split("/").pop() || data.system.model,
-      sublabel: data.system.model.includes("/") ? data.system.model.split("/")[0] : "provider",
+      value: shortModel,
+      sublabel: provider,
     },
     {
       icon: FolderOpen,

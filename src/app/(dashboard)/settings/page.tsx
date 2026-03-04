@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Settings, RefreshCw } from "lucide-react";
 import { SystemInfo } from "@/components/SystemInfo";
 import { IntegrationStatus } from "@/components/IntegrationStatus";
 import { QuickActions } from "@/components/QuickActions";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { DemoActivityToggle } from "@/components/DemoActivityToggle";
 
 interface SystemData {
   agent: {
@@ -42,27 +43,58 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const fetchSystemData = async (isManual = false) => {
+  const fetchSystemData = useCallback(async (isManual = false) => {
     try {
       if (isManual) setRefreshing(true);
-      const res = await fetch(`/api/system?ts=${Date.now()}`, { cache: "no-store" });
+      setLoadError(null);
+
+      const res = await fetch(`/api/system?ts=${Date.now()}`, {
+        cache: "no-store",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(body || `Request failed (${res.status})`);
+      }
+
       const data = await res.json();
+      if (!data?.agent || !data?.system || !Array.isArray(data?.integrations)) {
+        throw new Error("Invalid system payload");
+      }
+
       setSystemData(data);
       setLastRefresh(new Date());
     } catch (error) {
       console.error("Failed to fetch system data:", error);
+      setLoadError(error instanceof Error ? error.message : "Failed to load system data");
     } finally {
       setLoading(false);
       if (isManual) setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchSystemData();
     const interval = setInterval(() => fetchSystemData(false), 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchSystemData]);
+
+  useEffect(() => {
+    const es = new EventSource("/api/live/stream");
+    es.onmessage = () => {
+      fetchSystemData(false);
+    };
+    es.onerror = () => {
+      es.close();
+    };
+
+    return () => {
+      es.close();
+    };
+  }, [fetchSystemData]);
 
   const handleRefresh = () => {
     fetchSystemData(true);
@@ -100,12 +132,16 @@ export default function SettingsPage() {
         </button>
       </div>
 
-      {/* Last Refresh Time */}
-      {lastRefresh && (
+      {/* Last Refresh Time / Errors */}
+      {loadError ? (
+        <div className="text-sm mb-6" style={{ color: "var(--negative)" }}>
+          Failed to load system data. {loadError}
+        </div>
+      ) : lastRefresh ? (
         <div className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>
           Last updated: {lastRefresh.toLocaleTimeString()}
         </div>
-      )}
+      ) : null}
 
       {/* Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
@@ -127,6 +163,11 @@ export default function SettingsPage() {
         {/* Theme Selector */}
         <div className="lg:col-span-2">
           <ThemeSelector />
+        </div>
+
+        {/* Demo Activity */}
+        <div className="lg:col-span-2">
+          <DemoActivityToggle />
         </div>
       </div>
 

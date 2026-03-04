@@ -198,7 +198,7 @@ export default function AgentsPage() {
                             : "var(--text-muted)",
                       }}
                     >
-                      {agent.status}
+                      {agent.status === "online" ? "Active now" : "Idle"}
                     </span>
                   </div>
                 </div>

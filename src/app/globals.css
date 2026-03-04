@@ -123,6 +123,42 @@
   --text-muted: #818BB5;
 }
 
+:root[data-theme="shadow"] {
+  --bg: #1F2431;
+  --background: #1F2431;
+  --foreground: #D7DBE3;
+
+  --surface: #1B212E;
+  --surface-elevated: #232A39;
+  --surface-hover: #2A3243;
+  --card: #1B212E;
+  --card-elevated: #232A39;
+
+  --border: #313A4D;
+  --border-strong: #3D475D;
+
+  --accent: #3A78BE;
+  --accent-soft: rgba(58, 120, 190, 0.14);
+  --accent-hover: #4A88CE;
+  --accent-muted: rgba(58, 120, 190, 0.1);
+
+  --text-primary: #D7DBE3;
+  --text-secondary: #B0B7C6;
+  --text-muted: #858E9F;
+
+  --positive: #79A86E;
+  --positive-soft: rgba(121, 168, 110, 0.14);
+  --negative: #B87979;
+  --negative-soft: rgba(184, 121, 121, 0.14);
+  --warning: #C1A35D;
+  --warning-soft: rgba(193, 163, 93, 0.14);
+  --info: #3A78BE;
+  --info-soft: rgba(58, 120, 190, 0.14);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.38);
+}
+
 /* Base Styles */
 body {
   background-color: var(--bg);

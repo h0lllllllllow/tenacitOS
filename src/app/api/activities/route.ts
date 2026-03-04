@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logActivity, getActivities } from '@/lib/activities-db';
+import { maybeGenerateDemoActivity } from '@/lib/demo-activity';
 
 export async function GET(request: NextRequest) {
   try {
+    maybeGenerateDemoActivity();
     const { searchParams } = new URL(request.url);
 
     const type = searchParams.get('type') || undefined;
