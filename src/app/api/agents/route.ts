@@ -143,7 +143,7 @@ export async function GET() {
         emoji: agentInfo.emoji,
         color: agentInfo.color,
         model:
-          agent.model?.primary || config.agents.defaults.model.primary,
+          agent.model?.primary || config.agents.defaults.model.primary || "unknown",
         workspace: agent.workspace,
         dmPolicy:
           telegramAccount?.dmPolicy ||
