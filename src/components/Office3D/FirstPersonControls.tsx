@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -11,8 +11,7 @@ interface FirstPersonControlsProps {
 
 export default function FirstPersonControls({ moveSpeed = 5 }: FirstPersonControlsProps) {
   const { camera } = useThree();
-  const controlsRef = useRef<any>(null);
-  
+
   const moveState = useRef({
     forward: false,
     backward: false,
@@ -92,7 +91,7 @@ export default function FirstPersonControls({ moveSpeed = 5 }: FirstPersonContro
   }, []);
 
   useFrame((state, delta) => {
-    if (!controlsRef.current?.isLocked) return;
+    if (!document.pointerLockElement) return;
 
     const speed = moveSpeed * delta;
 
@@ -122,10 +121,11 @@ export default function FirstPersonControls({ moveSpeed = 5 }: FirstPersonContro
     camera.position.add(movement);
 
     // Boundaries (keep camera inside office)
-    camera.position.x = Math.max(-9, Math.min(9, camera.position.x));
-    camera.position.y = Math.max(1, Math.min(8, camera.position.y));
-    camera.position.z = Math.max(-8, Math.min(8, camera.position.z));
+    const clampedX = Math.max(-9, Math.min(9, camera.position.x));
+    const clampedY = Math.max(1, Math.min(8, camera.position.y));
+    const clampedZ = Math.max(-8, Math.min(8, camera.position.z));
+    camera.position.set(clampedX, clampedY, clampedZ);
   });
 
-  return <PointerLockControls ref={controlsRef} />;
+  return <PointerLockControls />;
 }

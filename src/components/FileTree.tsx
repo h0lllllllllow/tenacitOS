@@ -26,26 +26,14 @@ interface FileTreeProps {
   onSelect: (path: string) => void;
 }
 
-const getFileIcon = (name: string) => {
-  const lower = name.toLowerCase();
-  if (lower === "memory.md") return Brain;
-  if (lower === "soul.md") return Ghost;
-  if (lower === "user.md") return User;
-  if (lower === "agents.md") return BookOpen;
-  return FileText;
-};
-
-function TreeNode({
-  node,
-  selectedPath,
-  onSelect,
-  depth = 0,
-}: {
+interface TreeNodeProps {
   node: FileNode;
   selectedPath: string | null;
   onSelect: (path: string) => void;
   depth?: number;
-}) {
+}
+
+function TreeNode({ node, selectedPath, onSelect, depth = 0 }: TreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const isSelected = selectedPath === node.path;
   const isFolder = node.type === "folder";
@@ -58,11 +46,7 @@ function TreeNode({
     }
   };
 
-  const Icon = isFolder
-    ? isExpanded
-      ? FolderOpen
-      : Folder
-    : getFileIcon(node.name);
+  const fileIconName = node.name.toLowerCase();
 
   return (
     <div>
@@ -97,16 +81,23 @@ function TreeNode({
           </span>
         )}
         {!isFolder && <span className="w-3.5 md:w-4" />}
-        <Icon
-          className="w-3.5 h-3.5 md:w-4 md:h-4"
-          style={{
-            color: isFolder
-              ? "#F59E0B"
-              : isSelected
-              ? "var(--text-primary)"
-              : "#60A5FA",
-          }}
-        />
+        {isFolder ? (
+          isExpanded ? (
+            <FolderOpen className="w-3.5 h-3.5 md:w-4 md:h-4" style={{ color: "#F59E0B" }} />
+          ) : (
+            <Folder className="w-3.5 h-3.5 md:w-4 md:h-4" style={{ color: "#F59E0B" }} />
+          )
+        ) : fileIconName === "memory.md" ? (
+          <Brain className="w-3.5 h-3.5 md:w-4 md:h-4" style={{ color: isSelected ? "var(--text-primary)" : "#60A5FA" }} />
+        ) : fileIconName === "soul.md" ? (
+          <Ghost className="w-3.5 h-3.5 md:w-4 md:h-4" style={{ color: isSelected ? "var(--text-primary)" : "#60A5FA" }} />
+        ) : fileIconName === "user.md" ? (
+          <User className="w-3.5 h-3.5 md:w-4 md:h-4" style={{ color: isSelected ? "var(--text-primary)" : "#60A5FA" }} />
+        ) : fileIconName === "agents.md" ? (
+          <BookOpen className="w-3.5 h-3.5 md:w-4 md:h-4" style={{ color: isSelected ? "var(--text-primary)" : "#60A5FA" }} />
+        ) : (
+          <FileText className="w-3.5 h-3.5 md:w-4 md:h-4" style={{ color: isSelected ? "var(--text-primary)" : "#60A5FA" }} />
+        )}
         <span className="truncate">{node.name}</span>
       </button>
 

@@ -84,6 +84,7 @@ export function OfficeCanvas({ agents }: OfficeCanvasProps) {
           });
 
           // Process chroma key
+          // eslint-disable-next-line react-hooks/immutability
           const processed = processChromaKey(img);
           processedSprites[agentId] = processed;
         }
@@ -106,7 +107,7 @@ export function OfficeCanvas({ agents }: OfficeCanvasProps) {
   }, []);
 
   // Process sprite with chroma key (remove green #00FF00)
-  const processChromaKey = (img: HTMLImageElement): HTMLCanvasElement => {
+  function processChromaKey(img: HTMLImageElement): HTMLCanvasElement {
     const offscreen = document.createElement("canvas");
     offscreen.width = img.width;
     offscreen.height = img.height;
@@ -136,7 +137,7 @@ export function OfficeCanvas({ agents }: OfficeCanvasProps) {
     // Put processed data back
     ctx.putImageData(imageData, 0, 0);
     return offscreen;
-  };
+  }
 
   useEffect(() => {
     if (!imagesLoaded) return;
@@ -156,6 +157,7 @@ export function OfficeCanvas({ agents }: OfficeCanvasProps) {
 
     const animate = () => {
       timeRef.current += 0.016; // ~60fps
+      // eslint-disable-next-line react-hooks/immutability
       render(ctx, timeRef.current);
       animationFrameRef.current = requestAnimationFrame(animate);
     };
@@ -169,7 +171,7 @@ export function OfficeCanvas({ agents }: OfficeCanvasProps) {
     };
   }, [agents, hoveredAgent, imagesLoaded, bgImage, spriteImages]);
 
-  const render = (ctx: CanvasRenderingContext2D, time: number) => {
+  function render(ctx: CanvasRenderingContext2D, time: number) {
     ctx.clearRect(0, 0, 1200, 675);
 
     // 1. Draw background
@@ -194,7 +196,7 @@ export function OfficeCanvas({ agents }: OfficeCanvasProps) {
         drawSpeechBubble(ctx, agent, position);
       }
     });
-  };
+  }
 
   const drawAgent = (
     ctx: CanvasRenderingContext2D,
