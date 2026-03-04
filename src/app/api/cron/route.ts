@@ -88,19 +88,27 @@ function formatSchedule(schedule: Record<string, unknown>): string {
   }
 }
 
+function isValidCronId(id: string): boolean {
+  return /^[a-zA-Z0-9_-]+$/.test(id);
+}
+
 // PUT: Toggle enable/disable a cron job
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, enabled } = body;
 
-    if (!id) {
+    if (!id || typeof id !== "string") {
       return NextResponse.json({ error: "Job ID is required" }, { status: 400 });
+    }
+
+    if (!isValidCronId(id)) {
+      return NextResponse.json({ error: "Invalid job ID" }, { status: 400 });
     }
 
     const action = enabled ? "enable" : "disable";
     // Use openclaw CLI to update the job
-    const output = execSync(
+    execSync(
       `openclaw cron ${action} ${id} --json 2>/dev/null || openclaw cron update ${id} --enabled=${enabled} --json 2>/dev/null`,
       { timeout: 10000, encoding: "utf-8" }
     );
@@ -123,6 +131,10 @@ export async function DELETE(request: NextRequest) {
 
     if (!id) {
       return NextResponse.json({ error: "Job ID is required" }, { status: 400 });
+    }
+
+    if (!isValidCronId(id)) {
+      return NextResponse.json({ error: "Invalid job ID" }, { status: 400 });
     }
 
     execSync(`openclaw cron remove ${id} 2>/dev/null`, {

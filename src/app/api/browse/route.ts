@@ -4,6 +4,18 @@ import path from "path";
 
 const OPENCLAW_DIR = process.env.OPENCLAW_DIR || "/root/.openclaw";
 
+function resolveWorkspaceBase(workspace: string): string | null {
+  if (workspace === "workspace") {
+    return path.join(OPENCLAW_DIR, "workspace");
+  }
+
+  if (/^workspace-[a-zA-Z0-9_-]+$/.test(workspace)) {
+    return path.join(OPENCLAW_DIR, workspace);
+  }
+
+  return null;
+}
+
 interface FileEntry {
   name: string;
   type: "file" | "folder";
@@ -19,9 +31,14 @@ export async function GET(request: NextRequest) {
     const fileContent = searchParams.get("content") === "true";
     const rawMode = searchParams.get("raw") === "true";
     
-    // Determine BASE_PATH based on workspace
-    const BASE_PATH = path.join(OPENCLAW_DIR, workspace);
-    
+    const BASE_PATH = resolveWorkspaceBase(workspace);
+    if (!BASE_PATH) {
+      return NextResponse.json(
+        { error: "Invalid workspace" },
+        { status: 400 }
+      );
+    }
+
     // Validate workspace exists
     try {
       await fs.access(BASE_PATH);
