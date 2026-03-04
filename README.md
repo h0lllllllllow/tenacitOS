@@ -210,6 +210,10 @@ mission-control.yourdomain.com {
 
 ---
 
+## Engineering Policy
+
+See [`ENGINEERING_POLICY.md`](./ENGINEERING_POLICY.md) for quality/security guardrails (fix-first policy).
+
 ## Smoke Test
 
 Run a quick post-merge health check:
