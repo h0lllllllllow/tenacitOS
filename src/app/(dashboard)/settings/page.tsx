@@ -5,6 +5,7 @@ import { Settings, RefreshCw } from "lucide-react";
 import { SystemInfo } from "@/components/SystemInfo";
 import { IntegrationStatus } from "@/components/IntegrationStatus";
 import { QuickActions } from "@/components/QuickActions";
+import { ThemeSelector } from "@/components/ThemeSelector";
 
 interface SystemData {
   agent: {
@@ -119,6 +120,11 @@ export default function SettingsPage() {
         {/* Quick Actions */}
         <div>
           <QuickActions onActionComplete={handleRefresh} />
+        </div>
+
+        {/* Theme Selector */}
+        <div className="lg:col-span-2">
+          <ThemeSelector />
         </div>
       </div>
 
