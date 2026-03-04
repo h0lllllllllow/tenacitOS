@@ -97,7 +97,7 @@ export default function MovingAvatar({
     return true;
   }, [agent.id, obstacles, otherAvatarPositions]);
 
-  // Cambiar objetivo cada 5-10 segundos (depende del estado)
+  // Change target every 5-10 seconds (depends on state)
   useEffect(() => {
     const getNewTarget = () => {
       let attempts = 0;
@@ -145,7 +145,7 @@ export default function MovingAvatar({
     };
   }, [state.status, isPositionFree, officeBounds.minX, officeBounds.maxX, officeBounds.minZ, officeBounds.maxZ]);
 
-  // Mover suavemente hacia el objetivo
+  // Move smoothly toward the target
   useFrame((frameState, delta) => {
     if (!groupRef.current) return;
 

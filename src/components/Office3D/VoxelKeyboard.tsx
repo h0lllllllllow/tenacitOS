@@ -10,7 +10,7 @@ interface VoxelKeyboardProps {
 export default function VoxelKeyboard({ position, rotation = [0, 0, 0] }: VoxelKeyboardProps) {
   return (
     <group position={position} rotation={rotation}>
-      {/* Base del teclado */}
+      {/* Keyboard base */}
       <Box args={[0.8, 0.04, 0.3]} position={[0, 0, 0]} castShadow receiveShadow>
         <meshStandardMaterial color="#2d3748" roughness={0.8} />
       </Box>
@@ -51,7 +51,7 @@ export default function VoxelKeyboard({ position, rotation = [0, 0, 0] }: VoxelK
         </Box>
       ))}
 
-      {/* Barra espaciadora */}
+      {/* Space bar */}
       <Box args={[0.35, 0.03, 0.06]} position={[0, 0.035, 0.13]} castShadow>
         <meshStandardMaterial color="#374151" />
       </Box>

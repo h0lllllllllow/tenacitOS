@@ -23,7 +23,7 @@ const WORKFLOWS: Workflow[] = [
     trigger: "cron",
     status: "active",
     steps: [
-      `Find mentions of ${BRANDING.twitterHandle} en Twitter/X, LinkedIn e Instagram`,
+      `Find mentions of ${BRANDING.twitterHandle} on Twitter/X, LinkedIn, and Instagram`,
       "Review Reddit threads in r/webdev, r/javascript, r/learnprogramming",
       `Detect incoming collaboration opportunities and partnership requests (${BRANDING.ownerCollabEmail})`,
       "Track aprendiendo.dev in conversations and mentions",
@@ -31,9 +31,9 @@ const WORKFLOWS: Workflow[] = [
     ],
   },
   {
-    id: "noticias-ia",
+    id: "ai-web-news",
     emoji: "📰",
-    name: "Noticias IA y Web",
+    name: "AI & Web News",
     description: "Summarizes top AI and web development news from Twitter timeline to start the day informed.",
     schedule: "7:45 (daily)",
     trigger: "cron",
