@@ -252,8 +252,8 @@ export function AgentOrganigrama({ agents }: AgentOrganigramaProps) {
 
       {/* Legend */}
       <div style={{ display: "flex", gap: "1.5rem", justifyContent: "center", marginTop: "1rem", fontSize: "0.75rem", color: "var(--text-muted)" }}>
-        <span>● Online</span>
-        <span style={{ color: "#6b7280" }}>● Offline</span>
+        <span>● Active now</span>
+        <span style={{ color: "#6b7280" }}>● Idle</span>
         <span>--- allows communication</span>
       </div>
     </div>

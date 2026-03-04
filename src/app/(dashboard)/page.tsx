@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { StatsCard } from "@/components/StatsCard";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { WeatherWidget } from "@/components/WeatherWidget";
@@ -42,15 +42,18 @@ interface Agent {
   botToken?: string;
 }
 
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats>({ total: 0, today: 0, success: 0, error: 0, byType: {} });
   const [agents, setAgents] = useState<Agent[]>([]);
 
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/activities/stats").then(r => r.json()),
-      fetch("/api/agents").then(r => r.json()),
-    ]).then(([actStats, agentsData]) => {
+  const fetchOverview = useCallback(async () => {
+    try {
+      const [actStats, agentsData] = await Promise.all([
+        fetch(`/api/activities/stats?ts=${Date.now()}`, { cache: "no-store" }).then((r) => r.json()),
+        fetch(`/api/agents?ts=${Date.now()}`, { cache: "no-store" }).then((r) => r.json()),
+      ]);
+
       setStats({
         total: actStats.total || 0,
         today: actStats.today || 0,
@@ -59,8 +62,34 @@ export default function DashboardPage() {
         byType: actStats.byType || {},
       });
       setAgents(agentsData.agents || []);
-    }).catch(console.error);
+    } catch (error) {
+      console.error("Failed to fetch dashboard overview:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => fetchOverview(), 0);
+    const interval = setInterval(() => fetchOverview(), 20000);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [fetchOverview]);
+
+  useEffect(() => {
+    const es = new EventSource("/api/live/stream");
+    es.onmessage = () => {
+      fetchOverview();
+    };
+    es.onerror = () => {
+      es.close();
+    };
+
+    return () => {
+      es.close();
+    };
+  }, [fetchOverview]);
+
 
   return (
     <div className="p-4 md:p-8">
@@ -77,7 +106,7 @@ export default function DashboardPage() {
           🌙 NightshiftOS
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-          Overview of Tenacitas agent activity
+          Overview of NightshiftOS agent activity
         </p>
       </div>
 

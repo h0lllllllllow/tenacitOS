@@ -5,11 +5,13 @@
  */
 import { NextResponse } from 'next/server';
 import { getActivityStats } from '@/lib/activities-db';
+import { maybeGenerateDemoActivity } from '@/lib/demo-activity';
 import Database from 'better-sqlite3';
 import path from 'path';
 
 export async function GET() {
   try {
+    maybeGenerateDemoActivity();
     const stats = getActivityStats();
 
     // Also get heatmap data (last 52 weeks = 364 days)

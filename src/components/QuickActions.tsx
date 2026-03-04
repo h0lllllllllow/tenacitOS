@@ -9,6 +9,7 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
+  X,
 } from "lucide-react";
 import { ChangePasswordModal } from "./ChangePasswordModal";
 
@@ -22,12 +23,13 @@ interface ActionButton {
   icon: React.ComponentType<{ className?: string }>;
   color: "emerald" | "blue" | "yellow" | "red";
   action: () => Promise<void> | void;
-  placeholder?: boolean;
 }
 
 export function QuickActions({ onActionComplete }: QuickActionsProps) {
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showLogsModal, setShowLogsModal] = useState(false);
+  const [logsContent, setLogsContent] = useState("");
   const [notification, setNotification] = useState<{
     type: "success" | "error";
     message: string;
@@ -39,8 +41,30 @@ export function QuickActions({ onActionComplete }: QuickActionsProps) {
   };
 
   const handleRestartGateway = async () => {
-    // Placeholder - would call openclaw gateway restart
-    showNotification("success", "Gateway restart command sent (placeholder)");
+    setLoadingAction("restart");
+    try {
+      const res = await fetch("/api/system/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "openclaw-gateway",
+          backend: "systemd",
+          action: "restart",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Failed to restart gateway");
+      }
+
+      showNotification("success", "Gateway restarted successfully");
+      onActionComplete?.();
+    } catch (err) {
+      showNotification("error", err instanceof Error ? err.message : "Failed to restart gateway");
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
   const handleClearActivityLog = async () => {
@@ -64,8 +88,30 @@ export function QuickActions({ onActionComplete }: QuickActionsProps) {
   };
 
   const handleViewLogs = async () => {
-    // Placeholder - would open gateway logs
-    showNotification("success", "Opening gateway logs... (placeholder)");
+    setLoadingAction("view_logs");
+    try {
+      const res = await fetch("/api/system/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "openclaw-gateway",
+          backend: "systemd",
+          action: "logs",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Failed to fetch gateway logs");
+      }
+
+      setLogsContent(data.output || "No logs available");
+      setShowLogsModal(true);
+    } catch (err) {
+      showNotification("error", err instanceof Error ? err.message : "Failed to fetch logs");
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
   const actions: ActionButton[] = [
@@ -75,7 +121,6 @@ export function QuickActions({ onActionComplete }: QuickActionsProps) {
       icon: RefreshCw,
       color: "blue",
       action: handleRestartGateway,
-      placeholder: true,
     },
     {
       id: "clear_log",
@@ -90,7 +135,6 @@ export function QuickActions({ onActionComplete }: QuickActionsProps) {
       icon: FileText,
       color: "emerald",
       action: handleViewLogs,
-      placeholder: true,
     },
     {
       id: "change_password",
@@ -101,24 +145,37 @@ export function QuickActions({ onActionComplete }: QuickActionsProps) {
     },
   ];
 
-  const colorClasses = {
-    emerald:
-      "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20",
-    blue: "bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20",
-    yellow:
-      "bg-yellow-500/10 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/20",
-    red: "bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20",
+  const colorStyles = {
+    emerald: {
+      color: "var(--positive)",
+      backgroundColor: "color-mix(in srgb, var(--positive) 10%, var(--surface))",
+      borderColor: "color-mix(in srgb, var(--positive) 35%, var(--border))",
+    },
+    blue: {
+      color: "var(--info)",
+      backgroundColor: "color-mix(in srgb, var(--info) 10%, var(--surface))",
+      borderColor: "color-mix(in srgb, var(--info) 35%, var(--border))",
+    },
+    yellow: {
+      color: "var(--warning)",
+      backgroundColor: "color-mix(in srgb, var(--warning) 10%, var(--surface))",
+      borderColor: "color-mix(in srgb, var(--warning) 35%, var(--border))",
+    },
+    red: {
+      color: "var(--negative)",
+      backgroundColor: "color-mix(in srgb, var(--negative) 10%, var(--surface))",
+      borderColor: "color-mix(in srgb, var(--negative) 35%, var(--border))",
+    },
   };
 
   return (
     <>
-      <div className="bg-gray-900 rounded-xl p-6">
-        <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-          <RefreshCw className="w-5 h-5 text-emerald-400" />
+      <div className="rounded-xl p-6" style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}>
+        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+          <RefreshCw className="w-5 h-5" style={{ color: "var(--info)" }} />
           Quick Actions
         </h2>
 
-        {/* Notification */}
         {notification && (
           <div
             className={`flex items-center gap-2 p-3 rounded-lg mb-4 ${
@@ -146,9 +203,8 @@ export function QuickActions({ onActionComplete }: QuickActionsProps) {
                 key={action.id}
                 onClick={() => action.action()}
                 disabled={isLoading}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                  colorClasses[action.color]
-                }`}
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={colorStyles[action.color]}
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -156,9 +212,6 @@ export function QuickActions({ onActionComplete }: QuickActionsProps) {
                   <Icon className="w-4 h-4" />
                 )}
                 <span className="font-medium">{action.label}</span>
-                {action.placeholder && (
-                  <span className="text-xs opacity-50">(placeholder)</span>
-                )}
               </button>
             );
           })}
@@ -173,6 +226,33 @@ export function QuickActions({ onActionComplete }: QuickActionsProps) {
           setShowPasswordModal(false);
         }}
       />
+
+      {showLogsModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.7)" }}
+          onClick={() => setShowLogsModal(false)}
+        >
+          <div
+            className="w-full max-w-4xl rounded-xl border"
+            style={{ backgroundColor: "var(--card)", borderColor: "var(--border)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: "var(--border)" }}>
+              <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Gateway Logs</h3>
+              <button onClick={() => setShowLogsModal(false)} className="p-1 rounded" style={{ color: "var(--text-secondary)" }}>
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <pre
+              className="p-4 text-xs overflow-auto"
+              style={{ maxHeight: "60vh", color: "var(--text-secondary)", backgroundColor: "var(--background)" }}
+            >
+              {logsContent}
+            </pre>
+          </div>
+        </div>
+      )}
     </>
   );
 }

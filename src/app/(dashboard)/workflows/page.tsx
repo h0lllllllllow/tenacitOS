@@ -18,161 +18,161 @@ const WORKFLOWS: Workflow[] = [
     id: "social-radar",
     emoji: "🔭",
     name: "Social Radar",
-    description: "Monitoriza menciones, oportunidades de colaboración y conversaciones relevantes en redes sociales y foros.",
-    schedule: "9:30h y 17:30h (cada día)",
+    description: "Monitors mentions, collaboration opportunities, and relevant conversations across social platforms and forums.",
+    schedule: "9:30 and 17:30 (daily)",
     trigger: "cron",
     status: "active",
     steps: [
-      `Busca menciones de ${BRANDING.twitterHandle} en Twitter/X, LinkedIn e Instagram`,
-      "Revisa hilos de Reddit en r/webdev, r/javascript, r/learnprogramming",
-      `Detecta oportunidades de colaboración y collabs entrantes (${BRANDING.ownerCollabEmail})`,
-      "Monitoriza aprendiendo.dev en conversaciones y menciones",
-      "Envía resumen por Telegram si hay algo relevante",
+      `Find mentions of ${BRANDING.twitterHandle} on Twitter/X, LinkedIn, and Instagram`,
+      "Review Reddit threads in r/webdev, r/javascript, r/learnprogramming",
+      `Detect incoming collaboration opportunities and partnership requests (${BRANDING.ownerCollabEmail})`,
+      "Track aprendiendo.dev in conversations and mentions",
+      "Send a Telegram summary when something relevant appears",
     ],
   },
   {
-    id: "noticias-ia",
+    id: "ai-web-news",
     emoji: "📰",
-    name: "Noticias IA y Web",
-    description: "Resume las noticias más relevantes de IA y desarrollo web del timeline de Twitter para arrancar el día informado.",
-    schedule: "7:45h (cada día)",
+    name: "AI & Web News",
+    description: "Summarizes top AI and web development news from Twitter timeline to start the day informed.",
+    schedule: "7:45 (daily)",
     trigger: "cron",
     status: "active",
     steps: [
-      "Lee el timeline de Twitter/X via bird CLI",
-      "Filtra noticias de IA, web dev, arquitectura y herramientas dev",
-      "Selecciona 5-7 noticias más relevantes para el nicho de Carlos",
-      "Genera resumen estructurado con enlace y contexto",
-      "Envía digest por Telegram",
+      "Read the Twitter/X timeline via bird CLI",
+      "Filter AI, web dev, architecture, and dev-tools news",
+      "Select 5-7 most relevant stories for your niche",
+      "Generate a structured summary with links and context",
+      "Send digest via Telegram",
     ],
   },
   {
     id: "trend-monitor",
     emoji: "🔥",
     name: "Trend Monitor",
-    description: "Radar de tendencias urgentes en el nicho tech. Detecta temas virales antes de que exploten para aprovechar la ola de contenido.",
-    schedule: "7h, 10h, 15h y 20h (cada día)",
+    description: "Urgent trend radar for the tech niche. Detects rising topics before they peak.",
+    schedule: "7:00, 10:00, 15:00, and 20:00 (daily)",
     trigger: "cron",
     status: "active",
     steps: [
-      "Monitoriza trending topics en Twitter/X relacionados con tech y programación",
-      "Busca en Hacker News, dev.to y GitHub Trending",
-      "Evalúa si el trend es relevante para el canal de Carlos",
-      "Si detecta algo urgente, notifica inmediatamente con contexto",
-      "Sugiere ángulo de contenido si el trend tiene potencial",
+      "Monitor Twitter/X trending topics related to tech and programming",
+      "Check Hacker News, dev.to, and GitHub Trending",
+      "Evaluate whether the trend is relevant to your channel",
+      "If an urgent trend is detected, notify immediately with context",
+      "Suggest a content angle when the trend has potential",
     ],
   },
   {
     id: "daily-linkedin",
     emoji: "📊",
     name: "Daily LinkedIn Brief",
-    description: "Genera el post de LinkedIn del día basado en las noticias más relevantes de Hacker News, dev.to y la web tech.",
-    schedule: "9h (cada día)",
+    description: "Generates the daily LinkedIn post from top Hacker News, dev.to, and tech web stories.",
+    schedule: "9:00 (daily)",
     trigger: "cron",
     status: "active",
     steps: [
-      "Recopila top posts de Hacker News (front page tech/dev)",
-      "Revisa trending en dev.to y artículos destacados",
-      "Selecciona tema con mayor potencial de engagement para la audiencia de Carlos",
-      "Redacta post de LinkedIn en la voz de Carlos (profesional-cercano, sin emojis ni hashtags)",
-      "Envía borrador por Telegram para revisión y publicación",
+      "Collect top Hacker News posts (tech/dev front page)",
+      "Review trending dev.to and featured articles",
+      "Select the topic with strongest engagement potential",
+      "Draft LinkedIn post in your voice (professional, clear, no emojis/hashtags)",
+      "Send draft to Telegram for review and publishing",
     ],
   },
   {
     id: "newsletter-digest",
     emoji: "📬",
     name: "Newsletter Digest",
-    description: "Digest curado de las newsletters del día. Consolida lo mejor de las suscripciones de Carlos en un resumen accionable.",
-    schedule: "20h (cada día)",
+    description: "Curated digest of daily newsletters with actionable highlights.",
+    schedule: "20:00 (daily)",
     trigger: "cron",
     status: "active",
     steps: [
-      "Accede a Gmail y busca newsletters recibidas en el día",
-      "Filtra por remitentes relevantes (tech, IA, productividad, inversiones)",
-      "Extrae los puntos clave de cada newsletter",
-      "Genera digest estructurado por categorías",
-      "Envía resumen por Telegram",
+      "Access Gmail and find newsletters received today",
+      "Filter by relevant senders (tech, AI, productivity, investing)",
+      "Extract key points from each newsletter",
+      "Generate a category-based digest",
+      "Send summary via Telegram",
     ],
   },
   {
     id: "email-categorization",
     emoji: "📧",
     name: "Email Categorization",
-    description: "Categoriza y resume los emails del día para que Carlos empiece la jornada sin inbox anxiety.",
-    schedule: "7:45h (cada día)",
+    description: "Categorize and summarize daily emails for a low-stress inbox start.",
+    schedule: "7:45 (daily)",
     trigger: "cron",
     status: "active",
     steps: [
-      "Accede a Gmail y lee emails no leídos del día",
-      "Categoriza: urgente / colabs / facturas / universidad / newsletters / otros",
-      "Resumen de cada categoría con acción recomendada",
-      "Detecta emails de clientes con facturas pendientes (>90 días)",
-      "Envía resumen estructurado por Telegram",
+      "Access Gmail and read today's unread emails",
+      "Categorize: urgent / collabs / invoices / university / newsletters / other",
+      "Provide summary per category with recommended action",
+      "Detect client emails with overdue invoices (>90 days)",
+      "Send structured summary via Telegram",
     ],
   },
   {
     id: "weekly-newsletter",
     emoji: "📅",
     name: "Weekly Newsletter",
-    description: "Recapitulación semanal automática de los tweets y posts de LinkedIn para usar como base de la newsletter.",
-    schedule: "Domingos 18h",
+    description: "Automatic weekly recap of tweets and LinkedIn posts as newsletter input.",
+    schedule: "Sundays 18:00",
     trigger: "cron",
     status: "active",
     steps: [
-      `Recopila tweets de la semana (${BRANDING.twitterHandle} via bird CLI)`,
-      "Recopila posts publicados en LinkedIn",
-      "Organiza por temas y relevancia",
-      "Genera borrador de recapitulación semanal en tono newsletter",
-      "Envía por Telegram para revisión antes de publicar",
+      `Collect tweets from the week (${BRANDING.twitterHandle} via bird CLI)`,
+      "Collect published LinkedIn posts",
+      "Organize by topic and relevance",
+      "Generate weekly recap draft in newsletter tone",
+      "Send via Telegram for review before publishing",
     ],
   },
   {
     id: "advisory-board",
     emoji: "🏛️",
     name: "Advisory Board",
-    description: "7 asesores IA con personalidades y memorias propias. Consulta a cualquier advisor o convoca al board completo.",
-    schedule: "Bajo demanda",
+    description: "7 AI advisors with distinct personalities and memories. Query one advisor or summon the full board.",
+    schedule: "On-demand",
     trigger: "demand",
     status: "active",
     steps: [
-      "Carlos envía /cfo, /cmo, /cto, /legal, /growth, /coach o /producto",
-      "Tenacitas carga el skill advisory-board/SKILL.md",
-      "Lee el archivo de memoria del advisor correspondiente (memory/advisors/)",
-      "Responde en la voz y personalidad del advisor con contexto de Carlos",
-      "Actualiza el archivo de memoria con lo aprendido en la consulta",
-      "/board convoca los 7 advisors en secuencia y compila un board meeting completo",
+      "User sends /cfo, /cmo, /cto, /legal, /growth, /coach, or /product",
+      "NightshiftOS loads advisory-board/SKILL.md",
+      "Read the corresponding advisor memory file (memory/advisors/)",
+      "Reply in that advisor's voice/personality with user context",
+      "Update advisor memory with what was learned",
+      "/board summons all 7 advisors and compiles a full board meeting",
     ],
   },
   {
     id: "git-backup",
     emoji: "🔄",
     name: "Git Backup",
-    description: "Auto-commit y push del workspace cada 4 horas para garantizar que nada se pierde.",
-    schedule: "Cada 4h",
+    description: "Auto-commit and push workspace changes every 4 hours to prevent loss.",
+    schedule: "Every 4h",
     trigger: "cron",
     status: "active",
     steps: [
-      "Comprueba si hay cambios en el workspace de Tenacitas",
-      "Si hay cambios: git add -A",
-      "Genera mensaje de commit automático con timestamp y resumen de cambios",
-      "git push al repositorio remoto",
-      "Silencioso si no hay cambios — solo notifica si hay error",
+      "Check if there are changes in the NightshiftOS workspace",
+      "If changed: git add -A",
+      "Generate automatic commit message with timestamp and summary",
+      "git push to remote repository",
+      "Silent when no changes — notify only on errors",
     ],
   },
   {
     id: "nightly-evolution",
     emoji: "🌙",
     name: "Nightly Evolution",
-    description: "Sesión autónoma nocturna que implementa mejoras en Mission Control según el ROADMAP o inventa features nuevas útiles.",
-    schedule: "3h (cada noche)",
+    description: "Nightly autonomous session that ships roadmap improvements or useful new features.",
+    schedule: "03:00 (nightly)",
     trigger: "cron",
     status: "active",
     steps: [
-      "Lee ROADMAP.md de Mission Control para seleccionar la siguiente feature",
-      "Si no hay features claras, analiza el estado actual e inventa algo útil",
-      "Implementa la feature completa (código, tests si aplica, UI)",
-      "Verifica que el build de Next.js no falla",
-      "Notifica a Carlos por Telegram con el resumen de lo implementado",
+      "Read ROADMAP.md to select next feature",
+      "If roadmap is unclear, analyze current state and propose something useful",
+      "Implement full feature (code, tests when applicable, UI)",
+      "Verify Next.js build passes",
+      "Notify via Telegram with implementation summary",
     ],
   },
 ];
@@ -194,7 +194,7 @@ function StatusBadge({ status }: { status: "active" | "inactive" }) {
         textTransform: "uppercase",
         letterSpacing: "0.5px",
       }}>
-        {status === "active" ? "Activo" : "Inactivo"}
+        {status === "active" ? "Active" : "Inactive"}
       </span>
     </div>
   );
@@ -216,7 +216,7 @@ function TriggerBadge({ trigger }: { trigger: "cron" | "demand" }) {
       letterSpacing: "0.4px",
       textTransform: "uppercase" as const,
     }}>
-      {trigger === "cron" ? "⏱ Cron" : "⚡ Demanda"}
+      {trigger === "cron" ? "⏱ Cron" : "⚡ On-demand"}
     </div>
   );
 }
@@ -237,7 +237,7 @@ export default function WorkflowsPage() {
           Workflows
         </h1>
         <p style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--text-secondary)" }}>
-          {WORKFLOWS.filter(w => w.status === "active").length} flujos activos · {WORKFLOWS.filter(w => w.trigger === "cron").length} crons automáticos · {WORKFLOWS.filter(w => w.trigger === "demand").length} bajo demanda
+          {WORKFLOWS.filter(w => w.status === "active").length} active workflows · {WORKFLOWS.filter(w => w.trigger === "cron").length} automatic crons · {WORKFLOWS.filter(w => w.trigger === "demand").length} on-demand
         </p>
       </div>
 
@@ -245,8 +245,8 @@ export default function WorkflowsPage() {
       <div style={{ display: "flex", gap: "12px", marginBottom: "32px", flexWrap: "wrap" }}>
         {[
           { label: "Total workflows", value: WORKFLOWS.length, color: "var(--text-primary)" },
-          { label: "Crons activos", value: WORKFLOWS.filter(w => w.trigger === "cron" && w.status === "active").length, color: "#60a5fa" },
-          { label: "Bajo demanda", value: WORKFLOWS.filter(w => w.trigger === "demand").length, color: "var(--accent)" },
+          { label: "Active crons", value: WORKFLOWS.filter(w => w.trigger === "cron" && w.status === "active").length, color: "#60a5fa" },
+          { label: "On-demand", value: WORKFLOWS.filter(w => w.trigger === "demand").length, color: "var(--accent)" },
         ].map((stat) => (
           <div key={stat.label} style={{
             padding: "16px 20px",
@@ -363,7 +363,7 @@ export default function WorkflowsPage() {
                 letterSpacing: "0.7px",
                 marginBottom: "8px",
               }}>
-                Pasos
+                Steps
               </div>
               <ol style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: "4px" }}>
                 {workflow.steps.map((step, i) => (

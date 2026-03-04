@@ -3,7 +3,26 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
+interface ChannelAccount {
+  botToken?: string;
+}
+
+interface OpenClawConfig {
+  channels?: {
+    telegram?: {
+      enabled?: boolean;
+      accounts?: Record<string, ChannelAccount>;
+    };
+    discord?: {
+      enabled?: boolean;
+      accounts?: Record<string, ChannelAccount>;
+    };
+  };
+}
+
 import { OPENCLAW_WORKSPACE, WORKSPACE_IDENTITY } from '@/lib/paths';
+
+const OPENCLAW_CONFIG_PATH = path.join(os.homedir(), '.openclaw', 'openclaw.json');
 
 const WORKSPACE_PATH = OPENCLAW_WORKSPACE;
 const IDENTITY_PATH = WORKSPACE_IDENTITY;
@@ -26,20 +45,32 @@ function parseIdentityMd(): { name: string; creature: string; emoji: string } {
   }
 }
 
+function getRuntimeModel(): string {
+  try {
+    const openclawConfig = JSON.parse(fs.readFileSync(OPENCLAW_CONFIG_PATH, 'utf-8'));
+    return openclawConfig?.agents?.defaults?.model?.primary || 'openai-codex/gpt-5.3-codex';
+  } catch {
+    return 'openai-codex/gpt-5.3-codex';
+  }
+}
+
 function getIntegrationStatus() {
   const integrations = [];
 
-  // Telegram — read from openclaw.json (channels.telegram)
+  // Telegram/Discord — read from openclaw.json channels
   let telegramEnabled = false;
   let telegramAccounts = 0;
+  let discordEnabled = false;
+  let discordAccounts = 0;
   try {
-    const openclawConfigPath = path.join(os.homedir(), '.openclaw', 'openclaw.json');
-    const openclawConfig = JSON.parse(fs.readFileSync(openclawConfigPath, 'utf-8'));
+    const openclawConfig = JSON.parse(fs.readFileSync(OPENCLAW_CONFIG_PATH, 'utf-8')) as OpenClawConfig;
     const telegramConfig = openclawConfig?.channels?.telegram;
-    telegramEnabled = !!(telegramConfig?.enabled);
-    if (telegramConfig?.accounts) {
-      telegramAccounts = Object.keys(telegramConfig.accounts).length;
-    }
+    telegramEnabled = !!telegramConfig?.enabled;
+    telegramAccounts = Object.keys(telegramConfig?.accounts || {}).length;
+
+    const discordConfig = openclawConfig?.channels?.discord;
+    discordEnabled = !!discordConfig?.enabled;
+    discordAccounts = Object.keys(discordConfig?.accounts || {}).length;
   } catch {}
   integrations.push({
     id: 'telegram',
@@ -47,7 +78,16 @@ function getIntegrationStatus() {
     status: telegramEnabled ? 'connected' : 'disconnected',
     icon: 'MessageCircle',
     lastActivity: telegramEnabled ? new Date().toISOString() : null,
-    detail: telegramEnabled ? `${telegramAccounts} bots configured` : null,
+    detail: telegramEnabled ? `${telegramAccounts} bot${telegramAccounts === 1 ? '' : 's'} configured` : null,
+  });
+
+  integrations.push({
+    id: 'discord',
+    name: 'Discord',
+    status: discordEnabled ? 'connected' : 'disconnected',
+    icon: 'MessageSquare',
+    lastActivity: discordEnabled ? new Date().toISOString() : null,
+    detail: discordEnabled ? `${discordAccounts} bot${discordAccounts === 1 ? '' : 's'} configured` : null,
   });
 
   // Twitter (bird CLI) - check TOOLS.md for configuration
@@ -99,7 +139,7 @@ export async function GET() {
   const identity = parseIdentityMd();
   const uptime = process.uptime();
   const nodeVersion = process.version;
-  const model = process.env.OPENCLAW_MODEL || process.env.DEFAULT_MODEL || 'anthropic/claude-sonnet-4';
+  const model = getRuntimeModel();
   
   const systemInfo = {
     agent: {
@@ -125,7 +165,13 @@ export async function GET() {
     timestamp: new Date().toISOString(),
   };
   
-  return NextResponse.json(systemInfo);
+  return NextResponse.json(systemInfo, {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      Pragma: 'no-cache',
+      Expires: '0',
+    },
+  });
 }
 
 export async function POST(request: Request) {

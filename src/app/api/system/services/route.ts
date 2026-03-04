@@ -51,6 +51,16 @@ async function systemdAction(name: string, action: string): Promise<string> {
     throw new Error(`Invalid action "${action}"`);
   }
 
+  // openclaw-gateway is typically a user-level service, not system-level.
+  if (name === 'openclaw-gateway') {
+    if (action === 'logs') {
+      return run('journalctl', ['--user', '-u', name, '-n', '100', '--no-pager']);
+    }
+
+    const output = await run('systemctl', ['--user', action, name]);
+    return output || `${action} executed successfully`;
+  }
+
   if (action === 'logs') {
     return run('journalctl', ['-u', name, '-n', '100', '--no-pager']);
   }

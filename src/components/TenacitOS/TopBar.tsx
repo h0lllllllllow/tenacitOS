@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
+import { BRANDING } from "@/config/branding";
 
 export function TopBar() {
   const [showSearch, setShowSearch] = useState(false);
@@ -47,7 +48,7 @@ export function TopBar() {
       >
         {/* Left: Logo & Title */}
         <div className="flex items-center gap-3">
-          <span style={{ fontSize: "20px" }}>🦞</span>
+          <span style={{ fontSize: "20px" }}>{BRANDING.agentEmoji}</span>
           <h1
             style={{
               fontFamily: "var(--font-heading)",
@@ -57,7 +58,7 @@ export function TopBar() {
               letterSpacing: "-0.5px",
             }}
           >
-            TenacitOS
+            {BRANDING.agentName}
           </h1>
           {/* Version Badge */}
           <div
@@ -88,7 +89,7 @@ export function TopBar() {
             onClick={() => setShowSearch(true)}
             className="flex items-center gap-2 transition-all"
             style={{
-              width: "240px",
+              width: "200px",
               height: "32px",
               backgroundColor: "var(--surface-elevated)",
               borderRadius: "6px",
@@ -110,7 +111,7 @@ export function TopBar() {
                 color: "var(--text-muted)",
               }}
             >
-              Search... ⌘K
+              Search... Ctrl+K
             </span>
           </button>
 
@@ -139,7 +140,7 @@ export function TopBar() {
                   color: "var(--text-primary)",
                 }}
               >
-                C
+                {(BRANDING.ownerUsername || "U").charAt(0).toUpperCase()}
               </span>
             </div>
             {/* Name */}
@@ -151,7 +152,7 @@ export function TopBar() {
                 color: "var(--text-secondary)",
               }}
             >
-              Carlos
+              {BRANDING.ownerUsername || "User"}
             </span>
           </div>
         </div>
