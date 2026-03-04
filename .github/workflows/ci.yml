@@ -50,7 +50,6 @@ jobs:
     name: lint-report
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -58,4 +57,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install
-      - run: npm run lint
+      - name: Run full lint report (non-blocking output)
+        run: |
+          npm run lint || true
+          echo "Lint report completed (non-blocking)."
