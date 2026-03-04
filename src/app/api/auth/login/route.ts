@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { createSessionToken, SESSION_TTL_SECONDS } from "@/lib/auth-session";
 
 // Simple in-memory rate limiter (per-IP, resets on server restart)
 // Sufficient for a personal dashboard — no external dependency needed
@@ -72,7 +73,6 @@ function clearAttempts(ip: string): void {
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
 
-  // Rate limit check
   const { allowed, retryAfterMs } = checkRateLimit(ip);
   if (!allowed) {
     const retryAfterSec = Math.ceil((retryAfterMs ?? LOCKOUT_MS) / 1000);
@@ -85,27 +85,32 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if (!process.env.ADMIN_PASSWORD || !process.env.AUTH_SECRET) {
+    return NextResponse.json(
+      { success: false, error: "Auth is not configured" },
+      { status: 500 }
+    );
+  }
+
   const { password } = await request.json();
 
   if (password === process.env.ADMIN_PASSWORD) {
-    clearAttempts(ip); // Reset on success
+    clearAttempts(ip);
 
+    const token = await createSessionToken(process.env.AUTH_SECRET);
     const response = NextResponse.json({ success: true });
 
-    // Set auth cookie (7 days expiry)
-    // secure=true in production (HTTPS), false in dev (HTTP localhost)
-    response.cookies.set("mc_auth", process.env.AUTH_SECRET!, {
+    response.cookies.set("mc_auth", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      sameSite: "strict",
+      maxAge: SESSION_TTL_SECONDS,
       path: "/",
     });
 
     return response;
   }
 
-  // Record failed attempt
   recordFailure(ip);
 
   return NextResponse.json(
